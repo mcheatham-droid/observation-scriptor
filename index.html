@@ -83,7 +83,7 @@
     const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
     const KEY='niet-observation-scriptor-v1';
     const state={entries:[],speaker:'Teacher',startedAt:null,elapsed:0,running:false,listening:false,wantListening:false};
-    let recognition=null,tick=null,saveTimer=null,restartTimer=null;
+    let recognition=null,tick=null,saveTimer=null,restartTimer=null,listenWatchdog=null;
     const fields=['teacher','date','course','observer','summary'];
     const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const stamp=secs=>{secs=Math.max(0,Math.floor(secs));return [Math.floor(secs/3600),Math.floor(secs%3600/60),secs%60].map(n=>String(n).padStart(2,'0')).join(':')};
@@ -105,15 +105,19 @@
       }
       const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
       if(!SR){$('#liveText').textContent='Live transcription is not available in this browser. You can still use typed notes and all export tools.';return false}
-      recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';
-      recognition.onstart=()=>{state.listening=true;$('#pauseBtn').textContent='Pause listening'};
-      recognition.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)addEntry(t);else interim+=t}$('#liveText').textContent=interim};
-      recognition.onerror=e=>{state.listening=false;if(['not-allowed','service-not-allowed','audio-capture'].includes(e.error)){state.wantListening=false;$('#pauseBtn').textContent='Resume listening'}if(!['no-speech','aborted'].includes(e.error))toast('Microphone: '+e.error)};
-      recognition.onend=()=>{state.listening=false;clearTimeout(restartTimer);if(state.running&&state.wantListening){restartTimer=setTimeout(()=>{if(state.running&&state.wantListening){try{recognition.start()}catch{}}},600)}};
+      recognition=new SR();
+      // Short phrase sessions are more reliable than continuous mode on managed Chromebooks.
+      recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;recognition.lang='en-US';
+      recognition.onstart=()=>{state.listening=true;$('#pauseBtn').textContent='Pause listening';$('#liveText').textContent='Listening — speak normally…';clearTimeout(listenWatchdog);listenWatchdog=setTimeout(()=>{if(state.listening)$('#liveText').textContent='Microphone is active, but Chrome has not returned speech yet. Keep speaking for a few seconds.'},10000)};
+      recognition.onaudiostart=()=>{$('#liveText').textContent='Microphone active — listening for speech…'};
+      recognition.onspeechstart=()=>{$('#liveText').textContent='Speech detected — transcribing…'};
+      recognition.onresult=e=>{let interim='',captured='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript.trim();if(e.results[i].isFinal){captured+=(captured?' ':'')+t;addEntry(t)}else interim+=t}$('#liveText').textContent=interim||(`Captured: ${captured}`)};
+      recognition.onerror=e=>{state.listening=false;clearTimeout(listenWatchdog);if(['not-allowed','service-not-allowed','audio-capture'].includes(e.error)){state.wantListening=false;$('#pauseBtn').textContent='Resume listening'}if(e.error==='network')$('#liveText').textContent='Chrome speech service could not connect. Check the Chromebook network or district policy.';else if(e.error==='no-speech')$('#liveText').textContent='No speech detected — restarting…';else if(e.error!=='aborted'){$('#liveText').textContent='Microphone error: '+e.error;toast('Microphone: '+e.error)}};
+      recognition.onend=()=>{state.listening=false;clearTimeout(listenWatchdog);clearTimeout(restartTimer);if(state.running&&state.wantListening){restartTimer=setTimeout(()=>{if(state.running&&state.wantListening){try{recognition.start()}catch{}}},350)}};
       return true
     }
-    function startListening(){state.wantListening=true;if(!recognition&&!setupRecognition()){state.wantListening=false;return}try{recognition.start()}catch{}}
-    function stopListening(){state.wantListening=false;clearTimeout(restartTimer);if(recognition&&state.listening){try{recognition.stop()}catch{}}state.listening=false;$('#liveText').textContent=''}
+    function startListening(){state.wantListening=true;if(!recognition&&!setupRecognition()){state.wantListening=false;return}$('#liveText').textContent='Starting Chromebook-compatible transcription…';try{recognition.start()}catch{}}
+    function stopListening(){state.wantListening=false;clearTimeout(restartTimer);clearTimeout(listenWatchdog);if(recognition&&state.listening){try{recognition.stop()}catch{}}state.listening=false;$('#liveText').textContent='Listening paused.'}
     function start(){if(!state.running){state.startedAt=Date.now();state.running=true;tick=setInterval(updateTimer,500)}$('#startBtn').disabled=true;$('#finishBtn').disabled=false;$('#pauseBtn').disabled=false;startListening();save()}
     function finish(){if(state.running){state.elapsed=nowElapsed();state.running=false;clearInterval(tick)}stopListening();updateTimer();$('#startBtn').disabled=false;$('#startBtn').textContent='Resume observation';$('#finishBtn').disabled=true;$('#pauseBtn').disabled=true;save();toast('Observation saved')}
     function download(name,type,content){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},100)}

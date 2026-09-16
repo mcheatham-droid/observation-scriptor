@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#123c69">
+  <title>NIET Observation Scriptor</title>
+  <style>
+    :root{--navy:#123c69;--blue:#1b6ca8;--ink:#17202a;--muted:#617181;--line:#d8e1e8;--paper:#fff;--wash:#f4f7fa;--teacher:#e8f2fb;--student:#ebf7ef;--note:#fff6db;--danger:#a52929}
+    *{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;padding:12px 18px;box-shadow:0 2px 10px #0002}.topline,.toolbar,.meta,.speaker-row,.entry-head,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.brand{font-size:19px;font-weight:750;letter-spacing:.2px}.status{margin-left:auto;font-size:13px;background:#ffffff1d;border:1px solid #ffffff35;padding:5px 9px;border-radius:99px}.container{max-width:1120px;margin:auto;padding:16px}.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:0 2px 7px #1c35550c}.meta>label{flex:1 1 210px;font-size:12px;font-weight:700;color:var(--muted)}input,select,textarea,button{font:inherit}input,select,textarea{width:100%;margin-top:4px;border:1px solid #b9c6d0;border-radius:7px;padding:9px;background:#fff;color:var(--ink)}textarea{resize:vertical;min-height:74px}.toolbar{justify-content:space-between}.timer{font-variant-numeric:tabular-nums;font-size:28px;font-weight:750;color:var(--navy);min-width:112px}.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e6edf3;color:#183247}.btn.primary{background:var(--blue);color:#fff}.btn.stop{background:var(--danger);color:#fff}.btn:disabled{opacity:.48;cursor:not-allowed}.privacy{font-size:12px;color:var(--muted);margin-top:8px}.speaker{flex:1 1 130px;border:2px solid transparent}.speaker.teacher{background:var(--teacher)}.speaker.student{background:var(--student)}.speaker.note{background:var(--note)}.speaker.active{border-color:var(--navy);box-shadow:0 0 0 2px #123c6920}.speaker kbd{font-size:11px;background:#fff8;border:1px solid #8896a3;border-radius:4px;padding:1px 5px}.live{min-height:50px;padding:10px;border:1px dashed #aab8c4;border-radius:8px;margin-top:12px;color:#526474;background:#fafcfd}.live:empty:before{content:"Live words will appear here while listening…"}.section-title{font-size:16px;font-weight:800;color:var(--navy);margin:0 0 10px}.entry{border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:9px;padding:10px;margin:9px 0;background:#fff}.entry[data-speaker="Student"]{border-left-color:#388e5a}.entry[data-speaker="Observer Note"]{border-left-color:#d19a16}.entry-head{font-size:12px;color:var(--muted);margin-bottom:6px}.entry-head strong{font-size:13px;color:var(--ink)}.entry-text{width:100%;border:0;border-radius:4px;padding:5px;margin:0;min-height:46px;background:#fafbfd}.tag{display:inline-flex;align-items:center;background:#edf2f6;border-radius:99px;padding:3px 8px;color:#354b5d}.entry .delete{margin-left:auto;border:0;background:transparent;color:#9b2d2d;cursor:pointer;font-weight:700}.empty{text-align:center;color:var(--muted);padding:25px}.filters{display:grid;grid-template-columns:1.4fr 1fr auto;gap:8px}.count{font-size:13px;color:var(--muted);margin-top:8px}.footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 24px}.toast{position:fixed;right:18px;bottom:18px;background:#17202a;color:#fff;padding:10px 14px;border-radius:8px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:none}@media(max-width:640px){.filters{grid-template-columns:1fr}.container{padding:10px}.top{padding:10px}.status{width:100%;margin-left:0}.timer{font-size:23px}.btn{padding:9px 11px}}
+    @media print{.top,.controls,.filters,.entry .delete,.footer{display:none!important}body{background:#fff}.container{max-width:none;padding:0}.card{box-shadow:none;border:0;padding:5px;margin:0 0 10px}.entry{break-inside:avoid}.entry-text{resize:none;background:#fff}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="topline"><div class="brand">NIET Observation Scriptor</div><div class="status" id="saveStatus">Saved on this device</div></div></header>
+  <main class="container">
+    <section class="card">
+      <div class="meta">
+        <label>Teacher<input id="teacher" autocomplete="off" placeholder="Teacher name"></label>
+        <label>Date<input id="date" type="date"></label>
+        <label>Grade / Subject<input id="course" autocomplete="off" placeholder="e.g., Grade 5 Math"></label>
+        <label>Observer<input id="observer" autocomplete="off" placeholder="Observer name"></label>
+      </div>
+    </section>
+
+    <section class="card controls">
+      <div class="toolbar">
+        <div class="timer" id="timer">00:00:00</div>
+        <div class="actions">
+          <button class="btn primary" id="startBtn">Start observation</button>
+          <button class="btn" id="pauseBtn" disabled>Pause listening</button>
+          <button class="btn stop" id="finishBtn" disabled>Finish</button>
+        </div>
+      </div>
+      <div class="speaker-row" style="margin-top:12px">
+        <button class="btn speaker teacher active" data-speaker="Teacher"><kbd>T</kbd> Teacher</button>
+        <button class="btn speaker student" data-speaker="Student"><kbd>S</kbd> Student</button>
+        <button class="btn speaker note" data-speaker="Observer Note"><kbd>N</kbd> Observer note</button>
+        <select id="rubric" aria-label="Evidence tag" style="flex:2 1 260px;margin:0">
+          <option value="">No evidence tag</option>
+          <optgroup label="Instruction">
+            <option>Standards and Objectives</option><option>Motivating Students</option><option>Presenting Instructional Content</option><option>Lesson Structure and Pacing</option><option>Activities and Materials</option><option>Questioning</option><option>Academic Feedback</option><option>Grouping Students</option><option>Teacher Content Knowledge</option><option>Teacher Knowledge of Students</option><option>Thinking</option><option>Problem Solving</option>
+          </optgroup>
+          <optgroup label="Learning Environment">
+            <option>Expectations</option><option>Managing Student Behavior</option><option>Environment</option><option>Respectful Culture</option>
+          </optgroup>
+        </select>
+        <button class="btn" id="addNoteBtn">Add typed note</button>
+      </div>
+      <div class="live" id="liveText" aria-live="polite"></div>
+      <div class="privacy" id="privacyNote">No audio file is saved by this tool. Chrome may process speech online. Follow district requirements for classroom recording, notice, consent, and data retention.</div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Evidence script</h2>
+      <div class="filters">
+        <input id="search" placeholder="Search the script" aria-label="Search the script">
+        <select id="filterTag" aria-label="Filter by evidence tag"><option value="">All evidence tags</option></select>
+        <button class="btn" id="clearFilters">Clear filters</button>
+      </div>
+      <div class="count" id="count"></div>
+      <div id="entries"><div class="empty">Start the observation or add a typed note.</div></div>
+    </section>
+
+    <section class="card controls">
+      <h2 class="section-title">Observation summary</h2>
+      <textarea id="summary" placeholder="Patterns, strengths, refinement area, questions, or next steps…"></textarea>
+      <div class="actions" style="margin-top:10px">
+        <button class="btn primary" id="exportTxt">Export report</button>
+        <button class="btn" id="exportCsv">Export evidence CSV</button>
+        <button class="btn" id="exportJson">Backup data</button>
+        <button class="btn" id="printBtn">Print / Save PDF</button>
+        <button class="btn" id="newBtn" style="margin-left:auto;color:#8d2424">New observation</button>
+      </div>
+    </section>
+    <div class="footer">Evidence supports professional judgment; this tool does not calculate rubric ratings.</div>
+  </main>
+  <div class="toast" id="toast"></div>
+
+  <script>
+  (()=>{
+    'use strict';
+    const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+    const KEY='niet-observation-scriptor-v1';
+    const state={entries:[],speaker:'Teacher',startedAt:null,elapsed:0,running:false,listening:false,wantListening:false};
+    let recognition=null,tick=null,saveTimer=null,restartTimer=null;
+    const fields=['teacher','date','course','observer','summary'];
+    const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const stamp=secs=>{secs=Math.max(0,Math.floor(secs));return [Math.floor(secs/3600),Math.floor(secs%3600/60),secs%60].map(n=>String(n).padStart(2,'0')).join(':')};
+    const nowElapsed=()=>state.elapsed+(state.running?(Date.now()-state.startedAt)/1000:0);
+    function toast(msg){const e=$('#toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
+    function data(){return {version:1,metadata:Object.fromEntries(fields.map(id=>[id,$('#'+id).value])),entries:state.entries,elapsed:nowElapsed(),savedAt:new Date().toISOString()}}
+    function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{localStorage.setItem(KEY,JSON.stringify(data()));$('#saveStatus').textContent='Saved on this device';},180);$('#saveStatus').textContent='Saving…'}
+    function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(!d)return;fields.forEach(id=>$('#'+id).value=d.metadata?.[id]||'');state.entries=Array.isArray(d.entries)?d.entries:[];state.elapsed=Number(d.elapsed)||0;render();updateTimer()}catch(e){console.warn(e)}}
+    function updateTimer(){ $('#timer').textContent=stamp(nowElapsed()) }
+    function setSpeaker(name){state.speaker=name;$$('.speaker').forEach(b=>b.classList.toggle('active',b.dataset.speaker===name))}
+    function addEntry(text,speaker=state.speaker,tag=$('#rubric').value){text=String(text||'').trim();if(!text)return;state.entries.push({id:crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random(),time:Math.floor(nowElapsed()),speaker,tag,text});render();save()}
+    function render(){const q=$('#search').value.toLowerCase(),tag=$('#filterTag').value;const list=state.entries.filter(e=>(!q||(e.text+' '+e.speaker+' '+e.tag).toLowerCase().includes(q))&&(!tag||e.tag===tag));$('#entries').innerHTML=list.length?list.map(e=>`<article class="entry" data-id="${esc(e.id)}" data-speaker="${esc(e.speaker)}"><div class="entry-head"><strong>${esc(e.speaker)}</strong><span>${stamp(e.time)}</span>${e.tag?`<span class="tag">${esc(e.tag)}</span>`:''}<button class="delete" title="Delete entry">Delete</button></div><textarea class="entry-text" aria-label="Edit evidence">${esc(e.text)}</textarea></article>`).join(''):'<div class="empty">No evidence matches this view.</div>';$('#count').textContent=`Showing ${list.length} of ${state.entries.length} evidence entries`;refreshTags()}
+    function refreshTags(){const current=$('#filterTag').value;const tags=[...new Set(state.entries.map(e=>e.tag).filter(Boolean))].sort();$('#filterTag').innerHTML='<option value="">All evidence tags</option>'+tags.map(t=>`<option ${t===current?'selected':''}>${esc(t)}</option>`).join('')}
+    function setupRecognition(){
+      if(location.protocol==='file:'||!window.isSecureContext){
+        $('#liveText').textContent='Typed evidence is available, but live transcription requires the HTTPS version of this tool. The downloaded-file version cannot keep Chromebook microphone permission reliably.';
+        $('#privacyNote').textContent='Local-file mode: microphone transcription is disabled to prevent repeated permission prompts. Typed notes, timestamps, tags, saving, and exports still work.';
+        return false;
+      }
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SR){$('#liveText').textContent='Live transcription is not available in this browser. You can still use typed notes and all export tools.';return false}
+      recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';
+      recognition.onstart=()=>{state.listening=true;$('#pauseBtn').textContent='Pause listening'};
+      recognition.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)addEntry(t);else interim+=t}$('#liveText').textContent=interim};
+      recognition.onerror=e=>{state.listening=false;if(['not-allowed','service-not-allowed','audio-capture'].includes(e.error)){state.wantListening=false;$('#pauseBtn').textContent='Resume listening'}if(!['no-speech','aborted'].includes(e.error))toast('Microphone: '+e.error)};
+      recognition.onend=()=>{state.listening=false;clearTimeout(restartTimer);if(state.running&&state.wantListening){restartTimer=setTimeout(()=>{if(state.running&&state.wantListening){try{recognition.start()}catch{}}},600)}};
+      return true
+    }
+    function startListening(){state.wantListening=true;if(!recognition&&!setupRecognition()){state.wantListening=false;return}try{recognition.start()}catch{}}
+    function stopListening(){state.wantListening=false;clearTimeout(restartTimer);if(recognition&&state.listening){try{recognition.stop()}catch{}}state.listening=false;$('#liveText').textContent=''}
+    function start(){if(!state.running){state.startedAt=Date.now();state.running=true;tick=setInterval(updateTimer,500)}$('#startBtn').disabled=true;$('#finishBtn').disabled=false;$('#pauseBtn').disabled=false;startListening();save()}
+    function finish(){if(state.running){state.elapsed=nowElapsed();state.running=false;clearInterval(tick)}stopListening();updateTimer();$('#startBtn').disabled=false;$('#startBtn').textContent='Resume observation';$('#finishBtn').disabled=true;$('#pauseBtn').disabled=true;save();toast('Observation saved')}
+    function download(name,type,content){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},100)}
+    function safeName(){return ($('#teacher').value||'Teacher').trim().replace(/[^a-z0-9_-]+/gi,'_')+'_'+($('#date').value||new Date().toISOString().slice(0,10))}
+    function report(){const m=data().metadata;return [`NIET OBSERVATION EVIDENCE`,`Teacher: ${m.teacher||''}`,`Date: ${m.date||''}`,`Grade / Subject: ${m.course||''}`,`Observer: ${m.observer||''}`,`Duration: ${stamp(nowElapsed())}`,'',...state.entries.flatMap(e=>[`[${stamp(e.time)}] ${e.speaker}${e.tag?' — '+e.tag:''}`,e.text,'']),`OBSERVATION SUMMARY`,m.summary||''].join('\n')}
+    function csv(){const cell=v=>'"'+String(v??'').replaceAll('"','""')+'"';return ['Time,Speaker,NIET Evidence Tag,Evidence',...state.entries.map(e=>[stamp(e.time),e.speaker,e.tag,e.text].map(cell).join(','))].join('\n')}
+    $$('.speaker').forEach(b=>b.addEventListener('click',()=>setSpeaker(b.dataset.speaker)));
+    $('#startBtn').onclick=start;$('#finishBtn').onclick=finish;$('#pauseBtn').onclick=()=>{if(state.listening){stopListening();$('#pauseBtn').textContent='Resume listening'}else startListening()};
+    $('#addNoteBtn').onclick=()=>{const t=prompt(`Add ${state.speaker.toLowerCase()} evidence:`);if(t)addEntry(t)};
+    $('#entries').addEventListener('input',e=>{if(!e.target.classList.contains('entry-text'))return;const item=state.entries.find(x=>x.id===e.target.closest('.entry').dataset.id);if(item){item.text=e.target.value;save()}});
+    $('#entries').addEventListener('click',e=>{if(!e.target.classList.contains('delete'))return;const id=e.target.closest('.entry').dataset.id;if(confirm('Delete this evidence entry?')){state.entries=state.entries.filter(x=>x.id!==id);render();save()}});
+    $('#search').oninput=render;$('#filterTag').onchange=render;$('#clearFilters').onclick=()=>{$('#search').value='';$('#filterTag').value='';render()};
+    fields.forEach(id=>$('#'+id).addEventListener('input',save));
+    $('#exportTxt').onclick=()=>download(safeName()+'_Observation.txt','text/plain',report());
+    $('#exportCsv').onclick=()=>download(safeName()+'_Evidence.csv','text/csv',csv());
+    $('#exportJson').onclick=()=>download(safeName()+'_Backup.json','application/json',JSON.stringify(data(),null,2));
+    $('#printBtn').onclick=()=>window.print();
+    $('#newBtn').onclick=()=>{if(!confirm('Start a new observation? Export anything you need first.'))return;stopListening();clearInterval(tick);localStorage.removeItem(KEY);state.entries=[];state.elapsed=0;state.running=false;state.startedAt=null;fields.forEach(id=>$('#'+id).value='');$('#date').value=new Date().toISOString().slice(0,10);$('#startBtn').disabled=false;$('#startBtn').textContent='Start observation';$('#finishBtn').disabled=true;$('#pauseBtn').disabled=true;setSpeaker('Teacher');render();updateTimer();save()};
+    document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key.toLowerCase()==='t')setSpeaker('Teacher');if(e.key.toLowerCase()==='s')setSpeaker('Student');if(e.key.toLowerCase()==='n')setSpeaker('Observer Note')});
+    window.addEventListener('beforeunload',()=>{if(state.running){state.elapsed=nowElapsed();state.running=false}localStorage.setItem(KEY,JSON.stringify(data()))});
+    if(!$('#date').value)$('#date').value=new Date().toISOString().slice(0,10);load();setupRecognition();render();updateTimer();
+  })();
+  </script>
+</body>
+</html>
